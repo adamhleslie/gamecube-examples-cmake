@@ -1,3 +1,0 @@
-[submodule "cmake/devkitpro"]
-	path = cmake/devkitpro
-	url = https://github.com/adamhleslie/devkitpro-cmake.git

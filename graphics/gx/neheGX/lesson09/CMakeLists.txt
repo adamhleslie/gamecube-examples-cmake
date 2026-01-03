@@ -25,13 +25,6 @@ project(${PROJECT_NAME} LANGUAGES CXX C ASM)
 # Set the default search path for modules when using include / find_package
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../../cmake")
 
-# Set to ON when target system is Wii - CMAKE_SYSTEM_NAME is set by toolchain files
-if("${CMAKE_SYSTEM_NAME}" STREQUAL "NintendoWii")
-    set(WII ON)
-else()
-    set(WII OFF)
-endif()
-
 # Examples root contains devkitpro config package
 set(devkitpro_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../../../cmake/devkitpro")
 find_package(devkitpro CONFIG REQUIRED COMPONENTS libogc gxtexconv bin2s elf2dol)
@@ -69,7 +62,7 @@ get_target_property(gxtexconv_files assets_gxtexconv DKP_GXTEXCONV_TPL_FILES)
 dkp_add_bin2s(assets_bin2s "${gxtexconv_files}" "${CMAKE_CURRENT_BINARY_DIR}" "")
 add_dependencies(assets_bin2s assets_gxtexconv)
 target_link_libraries(assets_bin2s INTERFACE assets_gxtexconv)
-target_link_libraries(assets_bin2s PRIVATE "dkp::$<IF:$<BOOL:${WII}>,wii,gamecube>")
+target_link_libraries(assets_bin2s PRIVATE "dkp::gamecube")
 
 # SOURCE #
 add_executable(source_executable
@@ -78,9 +71,9 @@ add_executable(source_executable
 dkp_target_generate_symbol_table(source_executable)
 
 target_link_libraries(source_executable
-    PRIVATE "$<$<CONFIG:Debug,RelWithDebInfo>:dkp::libogc::$<IF:$<BOOL:${WII}>,wii,gamecube>::db>" # Note: db library must be linked first (see https://wiibrew.org/wiki/Debugging)
-    PRIVATE "dkp::$<IF:$<BOOL:${WII}>,wii,gamecube>"
-    PRIVATE "dkp::libogc::$<IF:$<BOOL:${WII}>,wii,gamecube>::ogc"
+    PRIVATE "$<$<CONFIG:Debug,RelWithDebInfo>:dkp::libogc::gamecube::db>" # Note: db library must be linked first (see https://wiibrew.org/wiki/Debugging)
+    PRIVATE "dkp::gamecube"
+    PRIVATE "dkp::libogc::gamecube::ogc"
     PRIVATE "m"
 )
 target_link_libraries(source_executable PUBLIC assets_bin2s)

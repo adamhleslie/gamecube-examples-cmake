@@ -24,13 +24,6 @@ project("library" LANGUAGES CXX C ASM)
 # Set the default search path for modules when using include / find_package
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
 
-# Set to ON when target system is Wii - CMAKE_SYSTEM_NAME is set by toolchain files
-if("${CMAKE_SYSTEM_NAME}" STREQUAL "NintendoWii")
-    set(WII ON)
-else()
-    set(WII OFF)
-endif()
-
 # Examples root contains devkitpro config package
 set(devkitpro_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/devkitpro")
 find_package(devkitpro CONFIG REQUIRED)
@@ -69,5 +62,5 @@ target_include_directories("${PROJECT_NAME}"
 dkp_target_generate_symbol_table("${PROJECT_NAME}")
 
 target_link_libraries("${PROJECT_NAME}"
-    PRIVATE "dkp::$<IF:$<BOOL:${WII}>,wii,gamecube>"
+    PRIVATE "dkp::gamecube"
 )

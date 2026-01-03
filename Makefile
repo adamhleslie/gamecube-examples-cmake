@@ -32,7 +32,7 @@ endif
 CMAKE_ARGS := $(CMAKE_TOOLCHAIN_ARG) $(CMAKE_BUILD_TYPE_ARG) $(CMAKE_FLAGS)
 
 # Find all directories containing CMakeLists.txt
-PROJECT_DIRS := $(shell find . -name "CMakeLists.txt" -not -path "*/build/*" -not -path "*/cmake/*" -exec dirname {} \; | sort -u)
+PROJECT_DIRS := $(shell find . -name "CMakeLists.txt" -not -path "*/build/*" -not -path "./cmake/*" -exec dirname {} \; | sort -u)
 
 # Default target
 .PHONY: all
@@ -149,16 +149,20 @@ distclean:
 	@echo "Distclean complete!"
 
 # Internal per-project build targets (used by parallel target)
+# Automatically configures if needed before building
 .PHONY: $(foreach dir,$(PROJECT_DIRS),build-$(subst /,-,$(subst ./,,$(dir))))
 $(foreach dir,$(PROJECT_DIRS),build-$(subst /,-,$(subst ./,,$(dir)))):
 	@project_path=$(subst -,/,$(subst build-,,$@)); \
-	if [ -d "$$project_path/$(BUILD_DIR)" ]; then \
-		echo "Building $$project_path"; \
-		(cd "$$project_path/$(BUILD_DIR)" && $(MAKE)); \
-	else \
-		echo "Error: $$project_path/$(BUILD_DIR) not found. Run 'make configure' first."; \
-		exit 1; \
-	fi
+	if [ ! -d "$$project_path/$(BUILD_DIR)" ]; then \
+		echo "Configuring $$project_path"; \
+		if [ -n "$(CMAKE_ARGS)" ]; then \
+			echo "CMake arguments: $(CMAKE_ARGS)"; \
+		fi; \
+		mkdir -p "$$project_path/$(BUILD_DIR)"; \
+		(cd "$$project_path/$(BUILD_DIR)" && $(CMAKE) $(CMAKE_ARGS) ..); \
+	fi; \
+	echo "Building $$project_path"; \
+	(cd "$$project_path/$(BUILD_DIR)" && $(MAKE))
 
 # Parallel build support - builds all projects in parallel
 # Each project gets its own target, allowing make's -j flag to parallelize

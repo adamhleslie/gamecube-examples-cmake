@@ -25,13 +25,6 @@ project(${PROJECT_NAME} LANGUAGES CXX C ASM)
 # Set the default search path for modules when using include / find_package
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake")
 
-# Set to ON when target system is Wii - CMAKE_SYSTEM_NAME is set by toolchain files
-if("${CMAKE_SYSTEM_NAME}" STREQUAL "NintendoWii")
-    set(WII ON)
-else()
-    set(WII OFF)
-endif()
-
 # Examples root contains devkitpro config package
 set(devkitpro_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/devkitpro")
 find_package(devkitpro CONFIG REQUIRED COMPONENTS libogc elf2dol)
@@ -39,24 +32,25 @@ find_package(devkitpro CONFIG REQUIRED COMPONENTS libogc elf2dol)
 # Global Compiler Flags
 set(warning_flags "-Winline" "-Wall" "-Wextra")
 set(cpp_flags "-fno-rtti" "-fno-exceptions")
-set(debug_flags "-O0")
-set(minSizeRel_flags "-Oz")
+set(debug_flags "-g" "-O0")
+set(minSizeRel_flags "-g" "-Oz")
 set(release_flags "-O3" "-fomit-frame-pointer" "-ffast-math")
+set(releaseWithDebInfo_flags "-g" ${release_flags})
 add_compile_options(
-    "-g"
     ${warning_flags}
     "$<$<COMPILE_LANGUAGE:CXX>:${cpp_flags}>"
     "$<$<CONFIG:Debug>:${debug_flags}>"
     "$<$<CONFIG:MinSizeRel>:${minSizeRel_flags}>"
-    "$<$<CONFIG:Release,RelWithDebInfo>:${release_flags}>"
+    "$<$<CONFIG:Release>:${release_flags}>"
+    "$<$<CONFIG:RelWithDebInfo>:${releaseWithDebInfo_flags}>"
 )
 add_link_options(
-    "-g"
     ${warning_flags}
     "$<$<COMPILE_LANGUAGE:CXX>:${cpp_flags}>"
     "$<$<CONFIG:Debug>:${debug_flags}>"
     "$<$<CONFIG:MinSizeRel>:${minSizeRel_flags}>"
-    "$<$<CONFIG:Release,RelWithDebInfo>:${release_flags}>"
+    "$<$<CONFIG:Release>:${release_flags}>"
+    "$<$<CONFIG:RelWithDebInfo>:${releaseWithDebInfo_flags}>"
 )
 
 # SOURCE #
@@ -66,10 +60,10 @@ add_executable(source_executable
 dkp_target_generate_symbol_table(source_executable)
 
 target_link_libraries(source_executable
-    PRIVATE "dkp::libogc::$<IF:$<BOOL:${WII}>,wii,gamecube>::db" # Note: db library must be linked first (see https://wiibrew.org/wiki/Debugging)
-    PRIVATE "dkp::$<IF:$<BOOL:${WII}>,wii,gamecube>"
-    PRIVATE "dkp::libogc::$<IF:$<BOOL:${WII}>,wii,gamecube>::bba"
-    PRIVATE "dkp::libogc::$<IF:$<BOOL:${WII}>,wii,gamecube>::ogc"
+    PRIVATE "$<$<CONFIG:Debug,RelWithDebInfo>:dkp::libogc::gamecube::db>" # Note: db library must be linked first (see https://wiibrew.org/wiki/Debugging)
+    PRIVATE "dkp::gamecube"
+    PRIVATE "dkp::libogc::gamecube::bba"
+    PRIVATE "dkp::libogc::gamecube::ogc"
     PRIVATE "m"
 )
 

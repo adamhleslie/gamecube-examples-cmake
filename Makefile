@@ -1,4 +1,4 @@
-# Makefile for building cmake-gamecube-examples projects
+# Makefile for building example projects
 # This Makefile discovers and builds all CMake projects in the repository
 
 # Configuration
